@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="description" content="Offline mobile tracker for the July 11, 2026 Chennai Job Fair." />
+  <title>Job Fair Tracker</title>
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=" />
+<style>
+/* ===========================
+   Job Fair Tracker - styles
+   Mobile-first, dark theme
+   =========================== */
+:root {
+  --bg: #0f172a; --bg-2: #111c33; --card: #1a2540; --text: #e6ecff;
+  --muted: #93a4c4; --border: #243153; --primary: #6366f1; --primary-2: #818cf8;
+  --success: #10b981; --warn: #f59e0b; --danger: #ef4444; --info: #06b6d4;
+  --shadow: 0 8px 24px rgba(0,0,0,.35); --radius: 14px;
+}
+[data-theme="light"] {
+  --bg: #f4f6fb; --bg-2: #ffffff; --card: #ffffff; --text: #0f172a;
+  --muted: #475569; --border: #e2e8f0; --primary: #4f46e5; --primary-2: #6366f1;
+  --shadow: 0 6px 18px rgba(15,23,42,.08);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg); color: var(--text);
+  -webkit-font-smoothing: antialiased; min-height: 100vh; padding-bottom: 100px;
+}
+.app-header {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, var(--bg-2), var(--bg));
+  border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #fff; font-weight: 800; font-size: 14px;
+  display: grid; place-items: center; box-shadow: var(--shadow);
+}
+.app-header h1 { font-size: 18px; margin: 0; }
+.sub { margin: 0; font-size: 12px; color: var(--muted); }
+.header-actions { display: flex; gap: 8px; }
+.icon-btn {
+  background: var(--card); color: var(--text); border: 1px solid var(--border);
+  width: 38px; height: 38px; border-radius: 10px; font-size: 16px; cursor: pointer;
+}
+.icon-btn:hover { border-color: var(--primary); }
+.hidden { display: none !important; }
+.tabs {
+  position: sticky; top: 65px; z-index: 25;
+  display: flex; gap: 6px; overflow-x: auto;
+  padding: 8px 12px;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+}
+.tab {
+  flex: 0 0 auto; padding: 8px 14px; border-radius: 999px;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--border); cursor: pointer; font-size: 13px;
+}
+.tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.view { display: none; padding: 14px 14px 0; }
+.view.active { display: block; }
+.section-title { font-size: 15px; margin: 18px 0 10px; color: var(--muted); font-weight: 600; }
+.hint { color: var(--muted); font-size: 13px; margin: 4px 0 10px; }
+.search-row, .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-bar select, .filter-bar input, .search-row input, .add-row input,
+#notesArea, input, select, textarea {
+  background: var(--card); color: var(--text); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px; font-size: 14px; width: 100%;
+  outline: none;
+}
+.filter-bar > * { flex: 1 1 130px; }
+input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+.grid.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (min-width: 700px) { .grid.cards { grid-template-columns: repeat(4, 1fr); } }
+.card.stat {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow);
+}
+.card.stat .num { font-size: 22px; font-weight: 800; }
+.card.stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.list { display: flex; flex-direction: column; gap: 10px; }
+.list.compact .item { padding: 10px 12px; }
+.item {
+  position: relative; overflow: hidden;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow);
+  transition: transform .15s ease;
+}
+.item .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.item h3 { margin: 0 0 4px; font-size: 16px; }
+.item .meta { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 10px; }
+.item .actions-inline { display: flex; gap: 6px; margin-top: 8px; }
+.actions-inline button {
+  background: var(--bg-2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer;
+}
+.actions-inline button:hover { border-color: var(--primary); }
+.item .fav { background: none; border: 0; font-size: 18px; cursor: pointer; color: var(--warn); }
+.swipe-actions {
+  position: absolute; inset: 0; display: flex; pointer-events: none;
+}
+.swipe-actions .a-edit, .swipe-actions .a-del {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 14px;
+}
+.swipe-actions .a-edit { background: var(--info); }
+.swipe-actions .a-del  { background: var(--danger); }
+.badge {
+  display: inline-block; padding: 3px 9px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: .3px;
+  color: #fff; background: var(--muted);
+}
+.badge.Interested    { background: #64748b; }
+.badge.Applied       { background: #3b82f6; }
+.badge.Interviewed   { background: #06b6d4; }
+.badge.Next-Round,
+.badge["Next-Round"],
+.badge.NextRound     { background: #f59e0b; }
+.badge.Offer         { background: #10b981; }
+.badge["Offer Received"] { background: #10b981; }
+.badge.Rejected      { background: #ef4444; }
+.badge.Follow-up     { background: #a855f7; }
+.badge["Follow-up Needed"] { background: #a855f7; }
+.badge.High   { background: #ef4444; }
+.badge.Medium { background: #f59e0b; }
+.badge.Low    { background: #10b981; }
+.btn {
+  background: var(--primary); color: #fff; border: 0;
+  border-radius: 10px; padding: 11px 14px; font-weight: 600; font-size: 14px;
+  cursor: pointer; min-height: 42px;
+}
+.btn:hover { filter: brightness(1.1); }
+.btn.ghost { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+.btn.danger { background: var(--danger); }
+.btn.small { padding: 6px 10px; font-size: 12px; min-height: 30px; }
+.row { display: flex; gap: 8px; align-items: center; }
+.row.end { justify-content: flex-end; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.add-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.add-row input { flex: 1; }
+.fab {
+  position: fixed; right: 18px; bottom: 22px; z-index: 40;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #fff; font-size: 28px; font-weight: 700;
+  border: 0; box-shadow: var(--shadow); cursor: pointer;
+}
+.modal {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(0,0,0,.55); display: flex; align-items: flex-end; justify-content: center;
+}
+.modal-card {
+  background: var(--bg-2); color: var(--text);
+  width: 100%; max-width: 720px;
+  border-radius: 18px 18px 0 0; max-height: 92vh; overflow: auto;
+  padding: 14px 14px 18px; box-shadow: var(--shadow);
+}
+@media (min-width: 700px) { .modal-card { border-radius: 18px; margin: auto; max-height: 86vh; } }
+.modal-card.narrow { max-width: 420px; }
+.modal-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.modal-head h3 { margin: 0; font-size: 17px; }
+.modal-body { padding-top: 10px; }
+.form-grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+@media (min-width: 700px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+.form-grid label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+.form-grid .full { grid-column: 1 / -1; }
+.modal-body .row { margin-top: 12px; }
+.stars { display: flex; gap: 4px; font-size: 22px; }
+.stars span { cursor: pointer; color: var(--muted); }
+.stars span.on { color: var(--warn); }
+.checklist { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.checklist li {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.checklist li.done span { text-decoration: line-through; color: var(--muted); }
+.checklist input[type=checkbox] { width: 18px; height: 18px; }
+#notesArea { width: 100%; min-height: 55vh; resize: vertical; }
+.bars { display: flex; flex-direction: column; gap: 8px; }
+.bar {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 8px 10px;
+  display: grid; grid-template-columns: 110px 1fr 40px;
+  align-items: center; gap: 8px; font-size: 12px;
+}
+.bar .track { background: var(--bg); height: 10px; border-radius: 999px; overflow: hidden; }
+.bar .fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-2)); }
+.toast {
+  position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%);
+  background: var(--text); color: var(--bg); padding: 10px 16px;
+  border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 80;
+  box-shadow: var(--shadow);
+}
+.empty { color: var(--muted); text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+  <header class="app-header" role="banner">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">JFT</span>
+      <div>
+        <h1>Job Fair Tracker</h1>
+        <p class="sub">Chennai • July 11, 2026</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="themeBtn" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+      <button id="installBtn" class="icon-btn hidden" title="Install app" aria-label="Install app">⬇️</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab active" data-view="dashboard" role="tab">Dashboard</button>
+    <button class="tab" data-view="companies" role="tab">Companies</button>
+    <button class="tab" data-view="reminders" role="tab">Reminders</button>
+    <button class="tab" data-view="checklist" role="tab">Checklist</button>
+    <button class="tab" data-view="notes" role="tab">Notes</button>
+    <button class="tab" data-view="stats" role="tab">Stats</button>
+    <button class="tab" data-view="settings" role="tab">Settings</button>
+  </nav>
+
+  <main id="main">
+    <section class="view active" id="view-dashboard" role="tabpanel">
+      <div class="search-row">
+        <input id="globalSearch" type="search" placeholder="🔎 Search company, role, HR, notes…" aria-label="Global search" />
+      </div>
+      <div class="grid cards" id="dashCards">
+        <div class="card stat" data-key="visited"><div class="num">0</div><div class="lbl">Companies Visited</div></div>
+        <div class="card stat" data-key="interviews"><div class="num">0</div><div class="lbl">Interviews</div></div>
+        <div class="card stat" data-key="hr"><div class="num">0</div><div class="lbl">HR Contacts</div></div>
+        <div class="card stat" data-key="pending"><div class="num">0</div><div class="lbl">Pending Follow-ups</div></div>
+        <div class="card stat" data-key="next"><div class="num">0</div><div class="lbl">Next Rounds</div></div>
+        <div class="card stat" data-key="offer"><div class="num">0</div><div class="lbl">Offers</div></div>
+        <div class="card stat" data-key="rejected"><div class="num">0</div><div class="lbl">Rejected</div></div>
+        <div class="card stat" data-key="total"><div class="num">0</div><div class="lbl">Total Companies</div></div>
+      </div>
+      <h2 class="section-title">Upcoming Reminders</h2>
+      <div id="upcomingReminders" class="list compact"></div>
+      <h2 class="section-title">Recent Companies</h2>
+      <div id="recentCompanies" class="list"></div>
+    </section>
+
+    <section class="view" id="view-companies" role="tabpanel">
+      <div class="filter-bar">
+        <input id="compSearch" type="search" placeholder="🔎 Search companies…" aria-label="Search companies" />
+        <select id="filterStatus" aria-label="Filter by status"><option value="">All status</option></select>
+        <select id="filterPriority" aria-label="Filter by priority"><option value="">All priority</option>
+          <option>High</option><option>Medium</option><option>Low</option></select>
+        <select id="filterRound" aria-label="Filter by round"><option value="">All rounds</option></select>
+        <select id="filterLocation" aria-label="Filter by location"><option value="">All locations</option></select>
+      </div>
+      <div id="companyList" class="list"></div>
+      <p id="emptyState" class="empty hidden">No companies yet. Tap + to add one.</p>
+    </section>
+
+    <section class="view" id="view-reminders" role="tabpanel">
+      <h2 class="section-title">Today</h2><div id="remToday" class="list"></div>
+      <h2 class="section-title">Upcoming</h2><div id="remUpcoming" class="list"></div>
+      <h2 class="section-title">Completed</h2><div id="remDone" class="list"></div>
+    </section>
+
+    <section class="view" id="view-checklist" role="tabpanel">
+      <h2 class="section-title">Day-of Checklist</h2>
+      <div class="add-row">
+        <input id="chkNew" type="text" placeholder="Add a new item…" />
+        <button id="chkAdd" class="btn">Add</button>
+      </div>
+      <ul id="checklist" class="checklist"></ul>
+    </section>
+
+    <section class="view" id="view-notes" role="tabpanel">
+      <h2 class="section-title">Quick Notes</h2>
+      <p class="hint">Saved automatically as you type.</p>
+      <textarea id="notesArea" placeholder="Type anything…"></textarea>
+    </section>
+
+    <section class="view" id="view-stats" role="tabpanel">
+      <div class="grid cards">
+        <div class="card stat"><div class="num" id="sTotal">0</div><div class="lbl">Total Companies</div></div>
+        <div class="card stat"><div class="num" id="sInterviews">0</div><div class="lbl">Total Interviews</div></div>
+        <div class="card stat"><div class="num" id="sFollow">0</div><div class="lbl">Total Follow-ups</div></div>
+        <div class="card stat"><div class="num" id="sRate">0%</div><div class="lbl">Success Rate</div></div>
+      </div>
+      <h2 class="section-title">Companies by Status</h2>
+      <div id="statusChart" class="bars"></div>
+      <h2 class="section-title">Companies by Priority</h2>
+      <div id="priorityChart" class="bars"></div>
+    </section>
+
+    <section class="view" id="view-settings" role="tabpanel">
+      <h2 class="section-title">Data</h2>
+      <div class="actions">
+        <button class="btn" id="exportJson">Export JSON</button>
+        <button class="btn" id="importJson">Import JSON</button>
+        <input id="importFile" type="file" accept="application/json" hidden />
+        <button class="btn" id="backupBtn">Backup Local Data</button>
+        <button class="btn" id="restoreBtn">Restore Local Data</button>
+        <button class="btn danger" id="resetBtn">Reset All Data</button>
+      </div>
+      <h2 class="section-title">About</h2>
+      <p class="hint">100% offline. No accounts. Data stays on this device.</p>
+    </section>
+  </main>
+
+  <button id="fab" class="fab" aria-label="Add new">＋</button>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="modalTitle">Add</h3>
+        <button id="modalClose" class="icon-btn" aria-label="Close">✕</button>
+      </div>
+      <div id="modalBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="confirm" class="modal hidden" role="alertdialog" aria-modal="true">
+    <div class="modal-card narrow">
+      <div class="modal-body">
+        <p id="confirmText">Are you sure?</p>
+        <div class="row end">
+          <button class="btn ghost" id="confirmNo">Cancel</button>
+          <button class="btn danger" id="confirmYes">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+/* ---------- Constants ---------- */
+const STORE_KEY = "jft_data_v1";
+const THEME_KEY = "jft_theme_v1";
+const STATUSES = [
+  "Interested", "Applied", "Interviewed",
+  "Next Round", "Offer Received", "Rejected", "Follow-up Needed"
+];
+const PRIORITIES = ["High", "Medium", "Low"];
+const DEFAULT_CHECKLIST = [
+  "Carry Resume", "Carry Water Bottle", "Carry ID Proof",
+  "Carry Passport Photos", "Carry Pen", "Carry Notebook",
+  "Charge Phone", "Download Resume PDF", "Turn On Mobile Data", "Reach Venue"
+];
+
+/* ---------- State ---------- */
+let state = load();
+function defaultState() {
+  return { companies: [], reminders: [], checklist: DEFAULT_CHECKLIST.map(t => ({ t, done: false })), notes: "", lastBackup: null };
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return seedDemo(defaultState());
+    return Object.assign(defaultState(), JSON.parse(raw));
+  } catch (e) { return seedDemo(defaultState()); }
+}
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function seedDemo(s) {
+  if (s.companies && s.companies.length) return s;
+  s.companies = [
+    mkCo("Infosys", "Systems Engineer", "IT", "3.6 LPA", "Chennai", "B-12", "10:30 AM", "1", "Anita Rao", "Karthik Iyer", "9000000001", "hr.infosys@example.com", "linkedin.com/in/infosys-karthik", "v3", "High", "Interviewed", ["Asked about OOP.", "Take-home: SQL joins."], "Tough but fair."),
+    mkCo("TCS", "Assistant Consultant", "IT", "4.2 LPA", "Chennai", "A-04", "11:15 AM", "1", "Suresh N.", "Priya M.", "9000000002", "priya.m@tcs.example", "linkedin.com/in/priya-tcs", "v3", "High", "Next Round", ["Why TCS?", "Project deep-dive."], "Round 2 on 15th."),
+    mkCo("HCLTech", "Software Developer", "IT", "4.5 LPA", "Madurai", "C-07", "12:00 PM", "1", "Rakesh V.", "Divya S.", "9000000003", "divya.s@hcl.example", "", "v2", "Medium", "Applied", ["Walk-in queue long."], ""),
+    mkCo("Zoho", "Member Technical Staff", "SaaS", "7.0 LPA", "Chennai", "D-02", "1:30 PM", "1", "Vikram J.", "Meera K.", "9000000004", "meera@zoho.example", "linkedin.com/in/meera-zoho", "v3", "High", "Follow-up Needed", ["Aptitude + coding.", "Email a sample."], "Send code sample by EOD."),
+    mkCo("Freshworks", "Customer Engineer", "SaaS", "6.0 LPA", "Chennai", "E-11", "2:45 PM", "1", "Arun P.", "Lavanya R.", "9000000005", "lavanya.r@freshworks.example", "linkedin.com/in/lavanya-fw", "v3", "Medium", "Interested", ["Cloud basics.", "Customer scenario."], "")
+  ];
+  return s;
+}
+function mkCo(name, role, industry, salary, loc, booth, time, round, intv, hr, phone, email, li, resume, priority, status, qAsked, feedback) {
+  return {
+    id: uid(), name, role, industry, salary, location: loc, booth,
+    time, round, interviewer: intv, hrName: hr, phone, email, linkedin: li,
+    resume, priority, status, notes: "",
+    hrQuestions: "", techQuestions: "", scenarioQuestions: "",
+    couldntAnswer: "", myAnswers: "", feedback, improvement: "",
+    questionsAsked: qAsked || [], favorite: false, rating: 0,
+    createdAt: new Date().toISOString()
+  };
+}
+
+/* ---------- DOM helpers ---------- */
+const $ = (s, root = document) => root.querySelector(s);
+const $$ = (s, root = document) => Array.from(root.querySelectorAll(s));
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.remove("hidden");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.add("hidden"), 1700);
+}
+function confirmAction(text, onYes) {
+  $("#confirmText").textContent = text;
+  const ok = $("#confirm"), yBtn = $("#confirmYes"), nBtn = $("#confirmNo");
+  ok.classList.remove("hidden");
+  const close = () => ok.classList.add("hidden");
+  yBtn.onclick = () => { close(); onYes(); };
+  nBtn.onclick = close;
+}
+
+/* ---------- Routing ---------- */
+function showView(name) {
+  $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+  $$(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + name));
+  if (name === "dashboard") renderDashboard();
+  if (name === "companies") renderCompanies();
+  if (name === "reminders") renderReminders();
+  if (name === "checklist") renderChecklist();
+  if (name === "notes") $("#notesArea").value = state.notes || "";
+  if (name === "stats") renderStats();
+  updateFab(name);
+}
+function updateFab(name) { $("#fab").dataset.mode = name === "reminders" ? "reminder" : "company"; }
+
+/* ---------- Dashboard ---------- */
+function renderDashboard() {
+  const c = state.companies;
+  const visited = c.filter(x => x.status !== "Interested").length;
+  const interviews = c.filter(x => ["Interviewed","Next Round","Offer Received","Rejected","Follow-up Needed"].includes(x.status)).length;
+  const hr = c.filter(x => x.hrName).length;
+  const pending = c.filter(x => x.status === "Follow-up Needed").length;
+  const next = c.filter(x => x.status === "Next Round").length;
+  const offer = c.filter(x => x.status === "Offer Received").length;
+  const rej = c.filter(x => x.status === "Rejected").length;
+  const map = { visited, interviews, hr, pending, next, offer, rejected: rej, total: c.length };
+  $$("#dashCards .stat").forEach(el => { el.querySelector(".num").textContent = map[el.dataset.key] ?? 0; });
+
+  const rem = state.reminders.filter(r => !r.done)
+    .sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time)).slice(0, 5);
+  $("#upcomingReminders").innerHTML = rem.length ? rem.map(reminderItem).join("") : `<p class="empty">No upcoming reminders.</p>`;
+
+  const rec = [...c].sort((a,b) => (b.createdAt||"").localeCompare(a.createdAt||"")).slice(0, 5);
+  $("#recentCompanies").innerHTML = rec.length ? rec.map(companyItem).join("") : `<p class="empty">No companies yet.</p>`;
+}
+
+/* ---------- Companies ---------- */
+function renderCompanies() {
+  populateFilters();
+  const q = ($("#compSearch").value || "").toLowerCase().trim();
+  const fs = $("#filterStatus").value, fp = $("#filterPriority").value, fr = $("#filterRound").value, fl = $("#filterLocation").value;
+  let list = state.companies.slice().sort((a,b) => (b.createdAt||"").localeCompare(a.createdAt||""));
+  if (q) list = list.filter(c => [c.name,c.role,c.hrName,c.notes,c.industry,c.location].join(" ").toLowerCase().includes(q));
+  if (fs) list = list.filter(c => c.status === fs);
+  if (fp) list = list.filter(c => c.priority === fp);
+  if (fr) list = list.filter(c => (c.round||"") === fr);
+  if (fl) list = list.filter(c => c.location === fl);
+
+  const el = $("#companyList");
+  el.innerHTML = list.length ? list.map(companyItem).join("") : "";
+  $("#emptyState").classList.toggle("hidden", list.length !== 0);
+  bindSwipe($("#companyList"));
+}
+function populateFilters() {
+  const s = $("#filterStatus"); if (!s.children[1]) s.innerHTML += STATUSES.map(x => `<option>${x}</option>`).join("");
+  const rounds = [...new Set(state.companies.map(c => c.round).filter(Boolean))].sort();
+  const r = $("#filterRound"); if (r.children.length === 1) r.innerHTML += rounds.map(x => `<option>${esc(x)}</option>`).join("");
+  const locs = [...new Set(state.companies.map(c => c.location).filter(Boolean))].sort();
+  const l = $("#filterLocation"); if (l.children.length === 1) l.innerHTML += locs.map(x => `<option>${esc(x)}</option>`).join("");
+}
+function companyItem(c) {
+  const stars = "★".repeat(c.rating||0) + "☆".repeat(5-(c.rating||0));
+  return `
+  <div class="item" data-id="${c.id}">
+    <div class="row">
+      <div style="flex:1;min-width:0">
+        <h3>${esc(c.name)} <span class="badge ${esc(c.status)}">${esc(c.status)}</span> <span class="badge ${esc(c.priority)}">${esc(c.priority)}</span></h3>
+        <div class="meta">
+          <span>🧑‍💼 ${esc(c.role||"-")}</span>
+          <span>🏢 ${esc(c.industry||"-")}</span>
+          <span>📍 ${esc(c.location||"-")}</span>
+          <span>🏷 Booth ${esc(c.booth||"-")}</span>
+          <span>⏰ ${esc(c.time||"-")} • Round ${esc(c.round||"-")}</span>
+          <span>💰 ${esc(c.salary||"-")}</span>
+        </div>
+        <div class="meta">
+          <span>👤 HR: ${esc(c.hrName||"-")}</span>
+          <span>📞 ${esc(c.phone||"-")}</span>
+          <span>✉️ ${esc(c.email||"-")}</span>
+          <span class="stars" style="font-size:13px">${stars}</span>
+        </div>
+      </div>
+      <button class="fav" data-act="fav" aria-label="Favorite">${c.favorite ? "★" : "☆"}</button>
+    </div>
+    <div class="actions-inline">
+      <button data-act="view">View</button>
+      <button data-act="edit">Edit</button>
+      <button data-act="del">Delete</button>
+    </div>
+    <div class="swipe-actions">
+      <div class="a-edit">✎ Edit</div>
+      <div class="a-del">🗑 Delete</div>
+    </div>
+  </div>`;
+}
+function bindSwipe(root) {
+  $$(".item", root).forEach(el => {
+    let startX = 0, curX = 0, open = false;
+    el.addEventListener("touchstart", e => { startX = e.touches[0].clientX; curX = 0; el.style.transition="none"; }, {passive:true});
+    el.addEventListener("touchmove", e => { curX = e.touches[0].clientX - startX; el.style.setProperty("--swipe", Math.max(-160, Math.min(160, curX))+"px"); }, {passive:true});
+    el.addEventListener("touchend", () => {
+      el.style.transition="transform .2s";
+      if (curX > 70) { el.style.setProperty("--swipe","160px"); open = "edit"; }
+      else if (curX < -70) { el.style.setProperty("--swipe","-160px"); open = "del"; }
+      else { el.style.setProperty("--swipe","0px"); open = false; }
+    });
+    el.addEventListener("click", e => {
+      const id = el.dataset.id;
+      const btn = e.target.closest("button");
+      if (btn) {
+        const act = btn.dataset.act;
+        if (act === "fav") { toggleFav(id); return; }
+        if (act === "view") { openCompany(id, true); return; }
+        if (act === "edit") { openCompany(id, false); return; }
+        if (act === "del")  { confirmAction("Delete this company?", () => delCo(id)); return; }
+      }
+      if (open === "edit") openCompany(id, false);
+      else if (open === "del") confirmAction("Delete this company?", () => delCo(id));
+      el.style.setProperty("--swipe","0px"); open = false;
+    });
+  });
+}
+function toggleFav(id) {
+  const c = state.companies.find(x => x.id === id); if (!c) return;
+  c.favorite = !c.favorite; save(); refresh();
+  toast(c.favorite ? "Favorited ⭐" : "Removed from favorites");
+}
+function delCo(id) { state.companies = state.companies.filter(x => x.id !== id); save(); refresh(); toast("Company deleted"); }
+
+/* ---------- Company modal ---------- */
+function openCompany(id, viewOnly) {
+  const c = id ? (state.companies.find(x => x.id === id) || {}) : blankCompany();
+  $("#modalTitle").textContent = id ? (viewOnly ? "Company Details" : "Edit Company") : "Add Company";
+  const fields = [
+    ["name","Company Name"],["role","Job Role"],["industry","Industry"],
+    ["salary","Salary Offered"],["location","Job Location"],["booth","Booth Number"],
+    ["time","Interview Time"],["round","Interview Round"],["interviewer","Interviewer Name"],
+    ["hrName","HR Name"],["phone","Phone Number"],["email","Email"],
+    ["linkedin","LinkedIn"],["resume","Resume Version Used"]
+  ];
+  const opts = (list, val) => list.map(x => `<option ${x===val?"selected":""}>${x}</option>`).join("");
+  $("#modalBody").innerHTML = `
+    <div class="form-grid">
+      ${fields.map(([k,l]) => `<div><label>${l}</label><input data-k="${k}" value="${esc(c[k]||"")}" ${viewOnly?"readonly":""}/></div>`).join("")}
+      <div><label>Priority</label><select data-k="priority" ${viewOnly?"disabled":""}>${opts(PRIORITIES, c.priority||"Medium")}</select></div>
+      <div><label>Status</label><select data-k="status" ${viewOnly?"disabled":""}>${opts(STATUSES, c.status||"Interested")}</select></div>
+      <div class="full"><label>Rating</label>
+        <div class="stars" id="rateStars">${[1,2,3,4,5].map(n => `<span data-n="${n}" class="${n<= (c.rating||0) ? "on":""}">★</span>`).join("")}</div>
+      </div>
+      <div class="full"><label>HR Questions</label><textarea data-k="hrQuestions" rows="2" ${viewOnly?"readonly":""}>${esc(c.hrQuestions||"")}</textarea></div>
+      <div class="full"><label>Technical Questions</label><textarea data-k="techQuestions" rows="2" ${viewOnly?"readonly":""}>${esc(c.techQuestions||"")}</textarea></div>
+      <div class="full"><label>Scenario Questions</label><textarea data-k="scenarioQuestions" rows="2" ${viewOnly?"readonly":""}>${esc(c.scenarioQuestions||"")}</textarea></div>
+      <div class="full"><label>Questions I couldn't answer</label><textarea data-k="couldntAnswer" rows="2" ${viewOnly?"readonly":""}>${esc(c.couldntAnswer||"")}</textarea></div>
+      <div class="full"><label>My answers</label><textarea data-k="myAnswers" rows="2" ${viewOnly?"readonly":""}>${esc(c.myAnswers||"")}</textarea></div>
+      <div class="full"><label>Feedback</label><textarea data-k="feedback" rows="2" ${viewOnly?"readonly":""}>${esc(c.feedback||"")}</textarea></div>
+      <div class="full"><label>Improvement Notes</label><textarea data-k="improvement" rows="2" ${viewOnly?"readonly":""}>${esc(c.improvement||"")}</textarea></div>
+      <div class="full"><label>General Notes</label><textarea data-k="notes" rows="2" ${viewOnly?"readonly":""}>${esc(c.notes||"")}</textarea></div>
+    </div>
+    <div class="row end">
+      <button class="btn ghost" id="modalCancel">${viewOnly?"Close":"Cancel"}</button>
+      ${viewOnly ? "" : `<button class="btn" id="modalSave">Save</button>`}
+    </div>`;
+  $("#modal").classList.remove("hidden");
+  if (!viewOnly) {
+    $$("#rateStars span").forEach(s => s.addEventListener("click", () => {
+      const n = +s.dataset.n; c.rating = (c.rating === n) ? 0 : n;
+      $$("#rateStars span").forEach(x => x.classList.toggle("on", +x.dataset.n <= c.rating));
+    }));
+  }
+  $("#modalCancel").onclick = closeModal;
+  if (!viewOnly) $("#modalSave").onclick = () => {
+    $$("#modalBody [data-k]").forEach(el => { c[el.dataset.k] = el.value; });
+    if (!id) { c.id = uid(); c.createdAt = new Date().toISOString(); state.companies.unshift(c); }
+    else Object.assign(state.companies.find(x => x.id === id), c);
+    save(); closeModal(); refresh(); toast(id ? "Updated" : "Added");
+  };
+}
+function blankCompany() { return { priority:"Medium", status:"Interested", rating:0, questionsAsked:[] }; }
+function closeModal() { $("#modal").classList.add("hidden"); }
+
+/* ---------- Reminders ---------- */
+function renderReminders() {
+  const today = new Date().toISOString().slice(0,10);
+  const sortFn = (a,b) => (a.date+a.time).localeCompare(b.date+b.time);
+  const t = state.reminders.filter(r => r.date === today).sort(sortFn);
+  const u = state.reminders.filter(r => r.date > today && !r.done).sort(sortFn);
+  const d = state.reminders.filter(r => r.done).sort((a,b)=> (b.date+b.time).localeCompare(a.date+a.time));
+  $("#remToday").innerHTML = t.length ? t.map(reminderItem).join("") : `<p class="empty">Nothing for today.</p>`;
+  $("#remUpcoming").innerHTML = u.length ? u.map(reminderItem).join("") : `<p class="empty">No upcoming reminders.</p>`;
+  $("#remDone").innerHTML = d.length ? d.map(reminderItem).join("") : `<p class="empty">No completed reminders yet.</p>`;
+}
+function reminderItem(r) {
+  return `
+  <div class="item" data-id="${r.id}">
+    <div class="row">
+      <div style="flex:1;min-width:0">
+        <h3>${esc(r.title)} <span class="badge ${esc(r.priority)}">${esc(r.priority)}</span> ${r.done?'<span class="badge" style="background:#10b981">Done</span>':''}</h3>
+        <div class="meta"><span>📅 ${esc(r.date||"-")}</span><span>⏰ ${esc(r.time||"-")}</span></div>
+        ${r.description ? `<p class="hint">${esc(r.description)}</p>` : ""}
+      </div>
+    </div>
+    <div class="actions-inline">
+      <button data-act="toggle">${r.done?"Undo":"Done"}</button>
+      <button data-act="edit">Edit</button>
+      <button data-act="del">Delete</button>
+    </div>
+  </div>`;
+}
+function openReminder(id) {
+  const r = id ? (state.reminders.find(x => x.id === id) || {date:new Date().toISOString().slice(0,10),time:"09:00",priority:"Medium"}) : {date:new Date().toISOString().slice(0,10),time:"09:00",priority:"Medium",done:false};
+  $("#modalTitle").textContent = id ? "Edit Reminder" : "Add Reminder";
+  $("#modalBody").innerHTML = `
+    <div class="form-grid">
+      <div class="full"><label>Title</label><input data-k="title" value="${esc(r.title||"")}"/></div>
+      <div><label>Date</label><input type="date" data-k="date" value="${esc(r.date||"")}"/></div>
+      <div><label>Time</label><input type="time" data-k="time" value="${esc(r.time||"")}"/></div>
+      <div class="full"><label>Priority</label><select data-k="priority">${PRIORITIES.map(p=>`<option ${p===r.priority?"selected":""}>${p}</option>`).join("")}</select></div>
+      <div class="full"><label>Description</label><textarea data-k="description" rows="3">${esc(r.description||"")}</textarea></div>
+    </div>
+    <div class="row end">
+      <button class="btn ghost" id="modalCancel">Cancel</button>
+      <button class="btn" id="modalSave">Save</button>
+    </div>`;
+  $("#modal").classList.remove("hidden");
+  $("#modalCancel").onclick = closeModal;
+  $("#modalSave").onclick = () => {
+    const data = {}; $$("#modalBody [data-k]").forEach(el => data[el.dataset.k] = el.value);
+    if (!data.title) { toast("Title required"); return; }
+    if (id) Object.assign(state.reminders.find(x=>x.id===id), data);
+    else state.reminders.push({ id: uid(), done:false, ...data });
+    save(); closeModal(); refresh(); toast(id?"Updated":"Reminder added");
+  };
+}
+function bindReminderActions() {
+  document.addEventListener("click", e => {
+    const it = e.target.closest("#remToday .item, #remUpcoming .item, #remDone .item");
+    if (!it) return;
+    const id = it.dataset.id, btn = e.target.closest("button");
+    if (!btn) return;
+    if (btn.dataset.act === "toggle") {
+      const r = state.reminders.find(x=>x.id===id); r.done=!r.done; save(); refresh(); toast(r.done?"Marked done":"Reopened");
+    } else if (btn.dataset.act === "edit") { openReminder(id); }
+    else if (btn.dataset.act === "del") { confirmAction("Delete this reminder?", () => {
+      state.reminders = state.reminders.filter(x=>x.id!==id); save(); refresh(); toast("Reminder deleted");
+    });}
+  });
+}
+
+/* ---------- Checklist ---------- */
+function renderChecklist() {
+  const ul = $("#checklist");
+  ul.innerHTML = state.checklist.map((it,i) => `
+    <li class="${it.done?"done":""}" data-i="${i}">
+      <input type="checkbox" ${it.done?"checked":""}/>
+      <span style="flex:1">${esc(it.t)}</span>
+      <button class="btn small ghost" data-act="del">✕</button>
+    </li>`).join("");
+  ul.querySelectorAll("li").forEach(li => {
+    li.querySelector("input").addEventListener("change", e => {
+      state.checklist[+li.dataset.i].done = e.target.checked; save(); renderChecklist();
+    });
+    li.querySelector("[data-act=del]").addEventListener("click", () => {
+      state.checklist.splice(+li.dataset.i, 1); save(); renderChecklist();
+    });
+  });
+}
+
+/* ---------- Stats ---------- */
+function renderStats() {
+  const c = state.companies;
+  $("#sTotal").textContent = c.length;
+  $("#sInterviews").textContent = c.filter(x => ["Interviewed","Next Round","Offer Received","Rejected"].includes(x.status)).length;
+  $("#sFollow").textContent = c.filter(x => x.status === "Follow-up Needed").length;
+  const decided = c.filter(x => ["Offer Received","Rejected"].includes(x.status)).length;
+  const success = c.filter(x => x.status === "Offer Received").length;
+  $("#sRate").textContent = decided ? Math.round(success / decided * 100) + "%" : "—";
+  $("#statusChart").innerHTML = renderBars(STATUSES.map(s => ({ k:s, n: c.filter(x => x.status === s).length })));
+  $("#priorityChart").innerHTML = renderBars(PRIORITIES.map(p => ({ k:p, n: c.filter(x => x.priority === p).length })));
+}
+function renderBars(items) {
+  const max = Math.max(1, ...items.map(i => i.n));
+  return items.map(i => `
+    <div class="bar">
+      <div>${esc(i.k)}</div>
+      <div class="track"><div class="fill" style="width:${(i.n/max*100).toFixed(0)}%"></div></div>
+      <div>${i.n}</div>
+    </div>`).join("");
+}
+
+/* ---------- Backup / Import / Export ---------- */
+function exportJson() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `job-fair-tracker-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast("Exported");
+}
+function importJsonFile(file) {
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const obj = JSON.parse(fr.result);
+      if (!obj.companies) throw new Error("Invalid file");
+      confirmAction("Replace all current data with imported file?", () => {
+        state = Object.assign(defaultState(), obj);
+        save(); refresh(); toast("Imported");
+      });
+    } catch (e) { toast("Invalid JSON"); }
+  };
+  fr.readAsText(file);
+}
+function backupLocal() {
+  localStorage.setItem(STORE_KEY + "_bak_" + Date.now(), JSON.stringify(state));
+  toast("Backup saved in this browser");
+}
+function restoreLocal() {
+  const keys = Object.keys(localStorage).filter(k => k.startsWith(STORE_KEY + "_bak_")).sort();
+  if (!keys.length) { toast("No backups found"); return; }
+  try {
+    state = Object.assign(defaultState(), JSON.parse(localStorage.getItem(keys[keys.length-1])));
+    save(); refresh(); toast("Restored from backup");
+  } catch { toast("Backup corrupted"); }
+}
+
+/* ---------- Theme ---------- */
+function applyTheme() {
+  const t = localStorage.getItem(THEME_KEY) || "dark";
+  document.documentElement.dataset.theme = (t === "light") ? "light" : "dark";
+  $("#themeBtn").textContent = t === "light" ? "☀️" : "🌙";
+}
+function toggleTheme() {
+  const next = (document.documentElement.dataset.theme === "light") ? "dark" : "light";
+  localStorage.setItem(THEME_KEY, next); applyTheme();
+}
+
+/* ---------- Search ---------- */
+function globalSearch(q) {
+  q = (q || "").toLowerCase().trim();
+  if (!q) { showView("dashboard"); return; }
+  showView("companies"); $("#compSearch").value = q; renderCompanies();
+}
+
+/* ---------- Misc ---------- */
+function refresh() { showView($(".tab.active")?.dataset.view || "dashboard"); }
+function bindCore() {
+  $$(".tab").forEach(t => t.addEventListener("click", () => showView(t.dataset.view)));
+  $("#compSearch").addEventListener("input", renderCompanies);
+  ["filterStatus","filterPriority","filterRound","filterLocation"].forEach(id => $("#"+id).addEventListener("change", renderCompanies));
+  $("#globalSearch").addEventListener("input", e => { if (e.target.value.length >= 2) globalSearch(e.target.value); });
+  $("#globalSearch").addEventListener("keydown", e => { if (e.key === "Enter") globalSearch(e.target.value); });
+  $("#fab").addEventListener("click", () => { ($("#fab").dataset.mode === "reminder") ? openReminder() : openCompany(); });
+  $("#modalClose").addEventListener("click", closeModal);
+  $("#themeBtn").addEventListener("click", toggleTheme);
+  $("#installBtn").addEventListener("click", installPwa);
+  $("#exportJson").addEventListener("click", exportJson);
+  $("#importJson").addEventListener("click", () => $("#importFile").click());
+  $("#importFile").addEventListener("change", e => { if (e.target.files[0]) importJsonFile(e.target.files[0]); });
+  $("#backupBtn").addEventListener("click", backupLocal);
+  $("#restoreBtn").addEventListener("click", restoreLocal);
+  $("#resetBtn").addEventListener("click", () => confirmAction("Erase ALL data on this device?", () => {
+    state = defaultState(); save(); refresh(); toast("Reset complete");
+  }));
+  $("#chkAdd").addEventListener("click", () => {
+    const v = $("#chkNew").value.trim(); if (!v) return;
+    state.checklist.push({ t: v, done: false });
+    $("#chkNew").value=""; save(); renderChecklist();
+  });
+  $("#chkNew").addEventListener("keydown", e => { if (e.key === "Enter") $("#chkAdd").click(); });
+  $("#notesArea").addEventListener("input", e => { state.notes = e.target.value; save(); });
+  bindReminderActions();
+}
+
+/* ---------- PWA install (single-file mode) ----------
+   The service worker is registered from a Blob URL so the app
+   can be installable and offline-capable even when opened
+   from the file:// protocol or a single HTML file. */
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); deferredPrompt = e; $("#installBtn").classList.remove("hidden");
+});
+async function installPwa() {
+  if (!deferredPrompt) { toast("Use your browser's 'Add to Home screen'"); return; }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === "accepted") toast("Installed!");
+  deferredPrompt = null; $("#installBtn").classList.add("hidden");
+}
+
+/* ---------- Inline service worker (Blob) ---------- */
+const SW_SOURCE = `
+const CACHE = "jft-single-v1";
+const SHELL = ["./", "./index.html"];
+self.addEventListener("install", e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+});
+self.addEventListener("activate", e => {
+  e.waitUntil(caches.keys().then(keys => Promise.all(
+    keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+  )).then(() => self.clients.claim()));
+});
+self.addEventListener("fetch", e => {
+  const req = e.request;
+  if (req.method !== "GET") return;
+  e.respondWith(caches.match(req).then(cached => {
+    const network = fetch(req).then(res => {
+      if (res && res.status === 200 && new URL(req.url).origin === self.location.origin) {
+        const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy));
+      }
+      return res;
+    }).catch(() => cached);
+    return cached || network;
+  }));
+});
+`;
+if ("serviceWorker" in navigator) {
+  // Try classic SW registration first (works when served over http/https)
+  // If that fails (e.g. file:// origin), fall back to a Blob URL SW.
+  window.addEventListener("load", () => {
+    const onError = () => {
+      try {
+        const blob = new Blob([SW_SOURCE], { type: "application/javascript" });
+        const url = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(url).catch(() => {});
+      } catch (e) { /* SW not critical for single-file mode */ }
+    };
+    navigator.serviceWorker.register("service-worker.js").catch(onError);
+  });
+}
+
+/* ---------- Init ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  applyTheme(); bindCore(); showView("dashboard"); save();
+});
+</script>
+</body>
+</html>
